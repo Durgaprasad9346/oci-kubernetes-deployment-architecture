@@ -12,6 +12,8 @@ This project provides a basic reference implementation for deploying a web appli
 
 ## Architecture Overview
 
+![OKE Web Application Architecture](architecture/oke-webapp-architecture.png)
+
 The architecture represents a common deployment pattern used for hosting web applications on Kubernetes.
 
 External users access the application through an OCI Load Balancer. Traffic is routed to an **Ingress Controller** running inside the Kubernetes cluster. The ingress controller forwards requests to a Kubernetes service, which then routes traffic to the application pods running across worker nodes.
