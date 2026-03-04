@@ -2,45 +2,29 @@
 
 ## Overview
 
-This repository demonstrates a reference implementation for deploying a containerized web application on **Oracle Kubernetes Engine (OKE)**, a managed Kubernetes service provided by Oracle Cloud Infrastructure (OCI).
+This repository demonstrates how to deploy a containerized web application on **Oracle Kubernetes Engine (OKE)** using Kubernetes manifests. The implementation showcases how applications running inside a Kubernetes cluster can be exposed to external users through an **Ingress Controller and OCI Load Balancer**.
 
-The objective of this project is to illustrate how Kubernetes workloads can be deployed and exposed to external users using OCI networking capabilities. By leveraging OKE, developers and platform engineers can run scalable containerized applications while offloading cluster management responsibilities to OCI.
+Oracle Kubernetes Engine (OKE) is a fully managed Kubernetes service provided by Oracle Cloud Infrastructure (OCI) that simplifies the deployment, management, and scaling of containerized workloads.
 
-This repository contains Kubernetes manifests and architecture references that describe how a simple web application can be deployed and exposed using Kubernetes services integrated with OCI infrastructure.
-
----
-
-## Oracle Kubernetes Engine (OKE)
-
-**Oracle Kubernetes Engine (OKE)** is a fully managed Kubernetes service that simplifies the deployment, management, and scaling of containerized applications on Oracle Cloud Infrastructure.
-
-OKE provides several benefits for organizations adopting cloud-native architectures:
-
-* Managed Kubernetes control plane
-* Automated cluster scaling and management
-* Native integration with OCI networking and load balancing
-* High availability and fault tolerance
-* Support for standard Kubernetes tools such as kubectl and Helm
-
-By using OKE, teams can focus on building and deploying applications while OCI handles cluster management and infrastructure reliability.
+This project provides a basic reference implementation for deploying a web application using Kubernetes resources such as Deployments, Services, and Ingress.
 
 ---
 
 ## Architecture Overview
 
-The architecture for this project represents a typical Kubernetes application deployment model on Oracle Cloud Infrastructure.
+The architecture represents a common deployment pattern used for hosting web applications on Kubernetes.
 
-External users access the web application through an OCI load balancer created automatically when a Kubernetes Service of type **LoadBalancer** is deployed. The load balancer routes traffic to services running inside the Oracle Kubernetes Engine cluster.
+External users access the application through an OCI Load Balancer. Traffic is routed to an **Ingress Controller** running inside the Kubernetes cluster. The ingress controller forwards requests to a Kubernetes service, which then routes traffic to the application pods running across worker nodes.
 
-Inside the cluster, application pods are scheduled across worker nodes, ensuring scalability and high availability.
-
-### High-Level Architecture
+### Traffic Flow
 
 Internet
 │
 OCI Load Balancer
 │
-Kubernetes Service (LoadBalancer)
+Ingress Controller
+│
+Kubernetes Service (ClusterIP)
 │
 Oracle Kubernetes Engine (OKE) Cluster
 ├── Worker Node 1
@@ -48,58 +32,114 @@ Oracle Kubernetes Engine (OKE) Cluster
 └── Worker Node 2
 └── Web Application Pod (NGINX)
 
-This design enables external users to access applications securely while allowing Kubernetes to manage application scaling and availability.
+This design provides scalability, high availability, and simplified traffic management for containerized applications.
 
 ---
 
 ## Components Used
 
-This implementation references the following technologies:
+The following technologies are used in this implementation:
 
-* **Oracle Cloud Infrastructure (OCI)** – Cloud platform providing networking and compute resources
-* **Oracle Kubernetes Engine (OKE)** – Managed Kubernetes service used to host containerized workloads
-* **Kubernetes Deployment** – Defines and manages application pods
-* **Kubernetes Service (LoadBalancer type)** – Exposes the application externally through OCI load balancing
-* **NGINX Container Image** – Example web application used for demonstration
+**Oracle Cloud Infrastructure (OCI)**
+Provides the underlying cloud infrastructure including networking and load balancing.
+
+**Oracle Kubernetes Engine (OKE)**
+Managed Kubernetes service used to run containerized workloads.
+
+**Kubernetes Deployment**
+Defines the desired state of the web application pods and ensures that the required number of replicas are running.
+
+**Kubernetes Service (ClusterIP)**
+Provides internal communication within the cluster and exposes the application to the ingress controller.
+
+**Ingress Controller**
+Handles external HTTP/HTTPS traffic and routes it to the appropriate Kubernetes service.
+
+**NGINX Container Image**
+Used as a simple web application for demonstration purposes.
 
 ---
 
 ## Repository Structure
 
 architecture/
-Contains architecture diagrams describing the deployment model.
+Contains architecture diagrams that illustrate the deployment model.
 
 kubernetes-manifests/
-Contains Kubernetes YAML files used to deploy and expose the web application.
+Contains Kubernetes YAML manifests used to deploy and expose the application.
 
 README.md
-Project documentation describing architecture, deployment workflow, and learning outcomes.
+Project documentation describing the architecture and deployment workflow.
 
 ---
 
-## Deployment Workflow
+## Kubernetes Resources Included
 
-A typical deployment workflow for deploying an application on Oracle Kubernetes Engine includes the following steps:
+### Deployment
 
-1. Provision an Oracle Kubernetes Engine (OKE) cluster in OCI.
-2. Configure kubectl access to communicate with the cluster.
-3. Deploy application resources using Kubernetes manifests.
-4. Expose the application externally using a Kubernetes Service of type LoadBalancer.
-5. Verify that the application is accessible through the load balancer endpoint.
+The deployment creates multiple replicas of an NGINX web application pod. Kubernetes ensures that the defined number of replicas are always running.
 
-Example commands:
+File:
+kubernetes-manifests/deployment.yaml
+
+---
+
+### Service
+
+The service exposes the application internally within the cluster. The ingress controller forwards traffic to this service.
+
+File:
+kubernetes-manifests/service.yaml
+
+Service Type:
+ClusterIP
+
+---
+
+### Ingress
+
+The ingress resource routes external HTTP traffic to the application service.
+
+File:
+kubernetes-manifests/ingress.yaml
+
+Ingress allows applications running in the cluster to be accessed using a domain name or external endpoint.
+
+---
+
+## Deployment Steps
+
+Apply the Kubernetes manifests to deploy the application.
+
+Deploy the application pods:
 
 kubectl apply -f kubernetes-manifests/deployment.yaml
 
+Create the internal service:
+
 kubectl apply -f kubernetes-manifests/service.yaml
 
-Verify application resources:
+Create the ingress resource:
+
+kubectl apply -f kubernetes-manifests/ingress.yaml
+
+---
+
+## Verification
+
+Check whether the pods are running:
 
 kubectl get pods
 
+Verify the service:
+
 kubectl get svc
 
-Once deployed, the service will provision an OCI load balancer that allows external users to access the application.
+Check ingress configuration:
+
+kubectl get ingress
+
+Once the ingress and load balancer are provisioned, the application can be accessed through the external endpoint.
 
 ---
 
@@ -107,22 +147,23 @@ Once deployed, the service will provision an OCI load balancer that allows exter
 
 Through this project, the following concepts can be understood:
 
-* Deployment of containerized workloads on Oracle Kubernetes Engine
-* Integration between Kubernetes services and OCI load balancers
-* Basic Kubernetes application deployment using YAML manifests
-* Exposure of web applications to external users using Kubernetes networking
+* Deploying containerized applications on Oracle Kubernetes Engine
+* Managing application replicas using Kubernetes Deployments
+* Exposing applications internally using Kubernetes Services
+* Routing external traffic using Kubernetes Ingress
+* Understanding how OCI load balancers integrate with Kubernetes networking
 
 ---
 
-## Real-World Use Case
+## Real World Use Case
 
-Organizations increasingly adopt containerized architectures to improve application scalability and deployment flexibility. Oracle Kubernetes Engine enables teams to deploy microservices and web applications in a managed Kubernetes environment while leveraging OCI's reliable infrastructure.
+Modern cloud-native applications are often deployed using container orchestration platforms such as Kubernetes. Oracle Kubernetes Engine provides a scalable and managed environment for running these workloads on Oracle Cloud Infrastructure.
 
-This architecture can serve as a foundational reference for deploying APIs, microservices, and modern web applications in Oracle Cloud Infrastructure.
+This architecture can serve as a starting point for deploying web applications, APIs, and microservices in OCI while leveraging Kubernetes for scalability and reliability.
 
 ---
 
 ## Author
 
 Durga Prasad
-Oracle ACE Program – Apprentice Stage
+Oracle ACE Program – Apprentice
